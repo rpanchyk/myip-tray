@@ -4,12 +4,12 @@ import sys
 import threading
 import time
 import requests
-from tkinter import *
+import darkdetect
+from tkinter import Tk, Label
 from PIL import Image, ImageTk
 from idlelib.tooltip import Hovertip
-import pystray
-from pystray import Icon as Icon, MenuItem as MenuItem
-import darkdetect
+from pystray import Icon, MenuItem
+
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
@@ -17,9 +17,11 @@ def resource_path(relative_path):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath('.'), relative_path)
 
+
 REQUEST_TIMEOUT = 5
 IMG_DIR = resource_path("assets/images")
 PIRATE_FLAG = f"{IMG_DIR}/pirate_flag.png"
+
 
 class Application:
     def __init__(self):
@@ -46,7 +48,7 @@ class Application:
 
         Hovertip(self.lab1, 'right click to close')
 
-        self.icon = pystray.Icon("ping")
+        self.icon = Icon("ping")
         self.icon.icon = Image.open(PIRATE_FLAG)
         self.icon.run_detached()
         self.icon.menu = (
