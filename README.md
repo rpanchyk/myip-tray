@@ -1,8 +1,9 @@
-# My IP Info Widget
-By using this widget, you can see your IP information in real time.
-This widget can be seen both on the desktop and in the system tray. 
+# My IP Tray
 
-![](https://github.com/B3H1Z/My-IP-Widget/blob/main/screenshots/MyIPWidget-dark.jpg)
-![](https://github.com/B3H1Z/My-IP-Widget/blob/main/screenshots/MyIPWidget-light.jpg)
+The project is a fork of [My-IP-Widget](https://github.com/B3H1Z/My-IP-Widget) 
+originally designed by [Behnam Ahmadi](https://behnamahmadi.com/) aka "B3H1Z".
 
-IP INFO WIDGET FOR WINDOWS: [DOWNLOAD](https://github.com/B3H1Z/My-IP-Widget/releases/download/v0.1.0/MyIP-Widget.exe)
+This application is aimed to observe and verify your external (WAN) IP address in real time.
+
+![](screenshots/MyIPWidget-dark.jpg)
+![](screenshots/MyIPWidget-light.jpg)
