@@ -26,17 +26,20 @@ class Application2:
     def __init__(self):
         # Settings
         self.start_minimized = False
+        self.on_top = True
+        self.position_x = 1830
+        self.position_y = 890
 
+        self.x_last = 0
+        self.y_last = 0
         self.last_ip = None
 
         self.root = Tk()
         self.root.overrideredirect(True)
-        # self.root.geometry("200x200")
-
         self.root.iconbitmap(f"{IMG_DIR}\\icon.ico")
 
         if darkdetect.theme() == "Dark":
-            self.bg_color = "black"
+            self.bg_color = "grey"
             self.fg_color = "white"
         else:
             self.bg_color = "white"
@@ -68,7 +71,7 @@ class Application2:
             )
         self.icon.update_menu()
 
-        self.root.attributes('-topmost', True)
+        self.root.attributes('-topmost', self.on_top)
         # self.root.attributes("-alpha", 0.7)
         self.root.configure(bg=self.bg_color)
 
@@ -87,8 +90,7 @@ class Application2:
         self.lab3.config(text="...")
         self.icon.icon = Image.open(PIRATE_FLAG)
 
-        self.x_last = 0
-        self.y_last = 0
+        self.relocate_window()
 
         self.event = threading.Event()
         self.thread = threading.Thread(target=self.update_data)
@@ -135,6 +137,20 @@ class Application2:
 
         self.root.destroy()
 
+    def relocate_window(self):
+        self.root.update_idletasks()  # Ensure dimensions are updated
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        # screen_width = self.root.winfo_screenwidth()
+        # screen_height = self.root.winfo_screenheight()
+
+        # x = (screen_width - width) // 2
+        # y = (screen_height - height) // 2
+        x = self.position_x
+        y = self.position_y
+
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+
     def update_data(self):
         while not self.event.is_set():
             ip_info = self.get_ip_info()
@@ -171,7 +187,10 @@ class Application2:
         return IpInfo(None, None)
 
     def run(self):
-        self.root.mainloop()
+        try:
+            self.root.mainloop()
+        except KeyboardInterrupt:
+            print("Interrupted by user")
         os._exit(1)
 
 
