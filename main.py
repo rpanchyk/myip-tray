@@ -3,6 +3,8 @@ import os
 import sys
 import threading
 import time
+import random
+
 import requests
 import darkdetect
 from tkinter import Tk, Label
@@ -166,7 +168,7 @@ class Application2:
 
         self.lab1.bind("<Button-3>", self.hide_window)
 
-        Hovertip(self.lab1, 'Right click to hide')
+        # Hovertip(self.lab1, 'Right click to hide')
 
         self.icon = Icon("ping")
         self.icon.icon = Image.open(PIRATE_FLAG)
@@ -195,8 +197,7 @@ class Application2:
         if self.start_minimized:
             self.hide_window(None)
 
-        self.ipApiResolver = IpApiResolver(REQUEST_TIMEOUT)
-        self.myIpResolver = MyIpResolver(REQUEST_TIMEOUT)
+        self.resolvers = [IpApiResolver(REQUEST_TIMEOUT), MyIpResolver(REQUEST_TIMEOUT)]
 
         self.lab1.image = ImageTk.PhotoImage(file=PIRATE_FLAG)
         self.lab1.config(image=self.lab1.image)
@@ -265,41 +266,46 @@ class Application2:
 
         self.root.destroy()
 
-    def find_ip(self):
-        try:
-            req = requests.get("http://ip-api.com/json/", timeout=REQUEST_TIMEOUT)
-            if req.status_code == 200:
-                ip_data = req.json()
-                return ip_data
-            else:
-                return False
-        except Exception as e:
-            print(e)
-            return False
-
     def update_data(self):
         while not self.event.is_set():
-            ip = self.find_ip()
-            print(ip)
-            if ip:
-                ip_address = ip["query"]
-                if ip_address != self.last_ip:
-                    self.last_ip = ip_address
-                    self.lab1.image = ImageTk.PhotoImage(image=Image.open(f"{IMG_DIR}\\flags\\{ip['countryCode']}.png"))
+            ip_info = self.get_ip_info()
+            if not ip_info.is_unknown():
+                if ip_info.ip_address != self.last_ip:
+                    self.last_ip = ip_info.ip_address
+                    self.lab1.image = ImageTk.PhotoImage(
+                        image=Image.open(f"{IMG_DIR}\\flags\\{ip_info.country_code}.png"))
                     self.lab1.config(image=self.lab1.image)
-                    self.lab2.config(text=ip["country"])
-                    self.lab3.config(text=ip_address)
-                    self.icon.icon = Image.open(f"{IMG_DIR}\\flags\\{ip['countryCode']}.png")
-                    self.icon.title = ip_address
+                    self.lab2.config(text=ip_info.country_code)
+                    self.lab3.config(text=ip_info.ip_address)
+                    self.icon.icon = Image.open(f"{IMG_DIR}\\flags\\{ip_info.country_code}.png")
+                    self.icon.title = ip_info.ip_address
             else:
                 self.last_ip = None
                 self.lab1.image = ImageTk.PhotoImage(file=PIRATE_FLAG)
                 self.lab1.config(image=self.lab1.image)
-                self.lab2.config(text="No Internet")
-                self.lab3.config(text="")
+                self.lab2.config(text="No connection")
+                self.lab3.config(text="...")
                 self.icon.icon = Image.open(PIRATE_FLAG)
 
             self.event.wait(5)
+
+    def get_ip_info(self):
+        resolvers_idx = [i for i in range(len(self.resolvers))]
+        while len(resolvers_idx) > 0:
+            idx = random.randint(0, len(resolvers_idx) - 1)
+            resolver = self.resolvers[idx]
+            ip_info = resolver.get()
+            if ip_info.is_unknown():
+                resolvers_idx.remove(idx)
+            else:
+                return ip_info
+
+        # for resolver in self.resolvers:
+        #     ip_info = resolver.get()
+        #     if not ip_info.is_empty():
+        #         return ip_info
+
+        return IpInfo(None, None)
 
     def run(self):
         self.root.mainloop()

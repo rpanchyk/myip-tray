@@ -5,9 +5,9 @@ from resolvers.resolver import Resolver
 
 class MyIpResolver(Resolver):
 
-    def get(self):
+    def get(self) -> IpInfo:
         try:
-            print("Getting IpInfo via MyIpResolver started")
+            print("Getting IpInfo via MyIpResolver ... ", end="")
             req = requests.get("https://api.myip.com", timeout=self.request_timeout)
 
             if req.status_code != 200:
@@ -15,8 +15,8 @@ class MyIpResolver(Resolver):
 
             data = req.json()
             ip_info = IpInfo(data["ip"], data["cc"])
-            print("Getting IpInfo via MyIpResolver finished:", ip_info)
+            print("Done:", ip_info)
             return ip_info
         except Exception as e:
-            print("Getting IpInfo via MyIpResolver failed:", e)
-            return False
+            print("Error:", e)
+            return IpInfo(None, None)

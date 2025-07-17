@@ -5,9 +5,9 @@ from resolvers.resolver import Resolver
 
 class IpApiResolver(Resolver):
 
-    def get(self):
+    def get(self) -> IpInfo:
         try:
-            print("Getting IpInfo via IpApiResolver started")
+            print("Getting IpInfo via IpApiResolver ... ", end="")
             req = requests.get("http://ip-api.com/json/", timeout=self.request_timeout)
 
             if req.status_code != 200:
@@ -15,8 +15,8 @@ class IpApiResolver(Resolver):
 
             data = req.json()
             ip_info = IpInfo(data["query"], data["countryCode"])
-            print("Getting IpInfo via IpApiResolver finished:", ip_info)
+            print("Done:", ip_info)
             return ip_info
         except Exception as e:
-            print("Getting IpInfo via IpApiResolver failed:", e)
-            return False
+            print("Error:", e)
+            return IpInfo(None, None)
