@@ -141,6 +141,8 @@ class Application2:
         # Settings
         self.start_minimized = False
 
+        self.last_ip = None
+
         self.root = Tk()
         self.root.overrideredirect(True)
         # self.root.geometry("200x200")
@@ -205,6 +207,10 @@ class Application2:
         self.x_last = 0
         self.y_last = 0
 
+        self.event = threading.Event()
+        self.thread = threading.Thread(target=self.update_data)
+        self.thread.start()
+
     def on_left_button_press(self, event):
         self.x_last = event.x_root
         self.y_last = event.y_root
@@ -250,10 +256,50 @@ class Application2:
         self.root.withdraw()
 
     def quit_window(self, event):
+        self.event.set()
+        self.thread.join()
+
         self.icon.icon = None
         self.icon.title = None
         self.icon.stop()
+
         self.root.destroy()
+
+    def find_ip(self):
+        try:
+            req = requests.get("http://ip-api.com/json/", timeout=REQUEST_TIMEOUT)
+            if req.status_code == 200:
+                ip_data = req.json()
+                return ip_data
+            else:
+                return False
+        except Exception as e:
+            print(e)
+            return False
+
+    def update_data(self):
+        while not self.event.is_set():
+            ip = self.find_ip()
+            print(ip)
+            if ip:
+                ip_address = ip["query"]
+                if ip_address != self.last_ip:
+                    self.last_ip = ip_address
+                    self.lab1.image = ImageTk.PhotoImage(image=Image.open(f"{IMG_DIR}\\flags\\{ip['countryCode']}.png"))
+                    self.lab1.config(image=self.lab1.image)
+                    self.lab2.config(text=ip["country"])
+                    self.lab3.config(text=ip_address)
+                    self.icon.icon = Image.open(f"{IMG_DIR}\\flags\\{ip['countryCode']}.png")
+                    self.icon.title = ip_address
+            else:
+                self.last_ip = None
+                self.lab1.image = ImageTk.PhotoImage(file=PIRATE_FLAG)
+                self.lab1.config(image=self.lab1.image)
+                self.lab2.config(text="No Internet")
+                self.lab3.config(text="")
+                self.icon.icon = Image.open(PIRATE_FLAG)
+
+            self.event.wait(5)
 
     def run(self):
         self.root.mainloop()
@@ -261,5 +307,5 @@ class Application2:
 
 
 if __name__ == '__main__':
-    Application().run()
-    # Application2().run()
+    # Application().run()
+    Application2().run()
