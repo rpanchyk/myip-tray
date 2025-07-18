@@ -72,7 +72,7 @@ class Application2:
         )
         self.icon.update_menu()
 
-        self.render_window(IpInfo(None, None))
+        self.render_window(IpInfo.unknown())
         self.relocate_window()
 
         if self.start_minimized:
@@ -170,7 +170,7 @@ class Application2:
                 resolvers_idx.remove(idx)
             else:
                 return ip_info
-        return IpInfo(None, None)
+        return IpInfo.unknown()
 
     def run(self):
         try:

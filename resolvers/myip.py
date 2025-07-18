@@ -14,9 +14,9 @@ class MyIpResolver(Resolver):
                 raise Exception(f"Status: {req.status_code}")
 
             data = req.json()
-            ip_info = IpInfo(data["ip"], data["cc"])
+            ip_info = IpInfo(data["ip"], data["country"], data["cc"])
             print("Done:", ip_info)
             return ip_info
         except Exception as e:
             print("Error:", e)
-            return IpInfo(None, None)
+            return IpInfo.unknown()
