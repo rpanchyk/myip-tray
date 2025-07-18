@@ -42,12 +42,15 @@ REFRESH_TIMEOUT_SECONDS=10
 EXPECTED_IP=
 ```
 
-### Expected IP feature
+### Expected IP feature explanation
 
 If you expect the specific IP should be used it is possible to set up it through configuration.
 The country flag will be changed to static one indicating required IP is active or not.
 
-For example:
+![](docs/view-expected-ip.png)
+![](docs/view-unexpected-ip.png)
+
+To turn on this feature, just change `.env` configuration file, for example:
 
 ```dotenv
 EXPECTED_IP=172.20.10.50
