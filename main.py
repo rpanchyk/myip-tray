@@ -2,6 +2,8 @@ import os
 import sys
 import threading
 import random
+from dotenv import load_dotenv
+from distutils.util import strtobool
 from tkinter import Tk, Label
 from PIL import Image, ImageTk
 from pystray import Icon, Menu, MenuItem
@@ -25,19 +27,24 @@ RUNTIME_FILE = ".runtime"
 
 class Application:
     def __init__(self):
+        load_dotenv()
+
+        # Docs
+        # Colors - https://www.plus2net.com/python/tkinter-colors.php
+
         # Settings
-        self.start_minimized = False
-        self.on_top = True
-        self.position_absolute = False
-        self.position_x = 0  # 1800
-        self.position_y = 0  # 890
-        self.background_color = "aliceblue"  # https://www.plus2net.com/python/tkinter-colors.php
-        self.foreground_color = "black"
-        self.font_family = "Arial"
-        self.font_size = 11
-        self.refresh_interval_seconds = 10
-        self.refresh_timeout_seconds = 10
-        self.expected_ip = ""
+        self.start_minimized = strtobool(os.getenv("START_MINIMIZED", "false"))
+        self.on_top = strtobool(os.getenv("ON_TOP", "true"))
+        self.position_absolute = strtobool(os.getenv("POSITION_ABSOLUTE", "false"))
+        self.position_x = int(os.getenv("POSITION_X", "0"))  # 1800
+        self.position_y = int(os.getenv("POSITION_Y", "0"))  # 890
+        self.background_color = os.getenv("BACKGROUND_COLOR", "aliceblue")
+        self.foreground_color = os.getenv("FOREGROUND_COLOR", "black")
+        self.font_family = os.getenv("FONT_FAMILY", "Arial")
+        self.font_size = int(os.getenv("FONT_SIZE", "11"))
+        self.refresh_interval_seconds = int(os.getenv("REFRESH_INTERVAL_SECONDS", "60"))
+        self.refresh_timeout_seconds = int(os.getenv("REFRESH_TIMEOUT_SECONDS", "10"))
+        self.expected_ip = os.getenv("EXPECTED_IP", "")
 
         # Runtime
         self.x_last = 0
@@ -77,7 +84,7 @@ class Application:
         self.icon = Icon("myip_icon")
         self.icon.icon = Image.open(PIRATE_FLAG)
         self.icon.menu = Menu(
-            MenuItem("Show", None, default=True),
+            MenuItem("Hide", self.hide_window, default=True),
             MenuItem("Quit", self.quit_window)
         )
         self.icon.run_detached()
@@ -87,8 +94,6 @@ class Application:
 
         if self.start_minimized:
             self.hide_window(None)
-        else:
-            self.show_window(None)
 
         self.event = threading.Event()
         self.thread = threading.Thread(target=self.update_data)
