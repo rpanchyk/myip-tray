@@ -4,13 +4,6 @@ class IpInfo:
         self.county_name = county_name
         self.country_code = country_code
 
-    # @staticmethod
-    # def resolved(ip_address, country_code):
-    #     ip_info = IpInfo()
-    #     ip_info.ip_address = ip_address
-    #     ip_info.country_code = country_code
-    #     return ip_info
-
     @staticmethod
     def unknown():
         return IpInfo(None, None, None)
