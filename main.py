@@ -113,6 +113,8 @@ class Application:
             file.write(str(x) + " " + str(y))
 
     def render_window(self, ip_info):
+        # ip_info.ip_address = "172.20.10.50"
+        # ip_info.country_code = "AU"
         if ip_info.is_unknown():
             self.last_ip = None
             flag_image = Image.open(PIRATE_FLAG)
@@ -140,7 +142,7 @@ class Application:
                 self.lab1.image = ImageTk.PhotoImage(image=flag_image)
                 self.lab1.config(image=self.lab1.image)
                 self.lab2.config(text=ip_info.country_code, font=(self.font_family, self.font_size))
-                self.lab3.config(text=ip_info.ip_address, font=(self.font_family, self.font_size))
+                self.lab3.config(text=" " + ip_info.ip_address + " ", font=(self.font_family, self.font_size))
 
                 # self.root.update_idletasks()
                 # width = self.lab3.winfo_reqwidth() + 5
