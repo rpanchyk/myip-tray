@@ -19,6 +19,7 @@ def resource_path(relative_path):
 ICONS_DIR = resource_path("assets/icons")
 IMAGES_DIR = resource_path("assets/images")
 PIRATE_FLAG = f"{IMAGES_DIR}/pirate_flag.png"
+RUNTIME_FILE = ".runtime"
 
 
 class Application:
@@ -26,8 +27,9 @@ class Application:
         # Settings
         self.start_minimized = False
         self.on_top = True
-        self.position_x = 1810
-        self.position_y = 890
+        self.position_absolute = False
+        self.position_x = 0  # 1800
+        self.position_y = 0  # 890
         self.background_color = "aliceblue"  # https://www.plus2net.com/python/tkinter-colors.php
         self.foreground_color = "black"
         self.font_family = "Arial"
@@ -51,6 +53,7 @@ class Application:
         self.root.configure(bg=self.background_color)
 
         self.root.bind("<ButtonPress-1>", self.on_left_button_press)
+        self.root.bind('<ButtonRelease-1>', self.on_left_button_release)
         self.root.bind("<B1-Motion>", self.move_window)
         self.root.bind("<Button-2>", self.quit_window)
 
@@ -93,17 +96,25 @@ class Application:
         self.x_last = event.x_root
         self.y_last = event.y_root
 
+    def on_left_button_release(self, event):
+        x_delta = event.x_root - self.x_last
+        y_delta = event.y_root - self.y_last
+        x = self.root.winfo_x() + x_delta
+        y = self.root.winfo_y() + y_delta
+        with open(RUNTIME_FILE, "w") as file:
+            file.write(str(x) + " " + str(y))
+
     def render_window(self, ip_info):
         if ip_info.is_unknown():
             self.last_ip = None
             flag_image = Image.open(PIRATE_FLAG)
 
             self.icon.icon = flag_image
-            self.icon.title = "Unknown IP"
+            self.icon.title = "Unknown"
 
             self.lab1.image = ImageTk.PhotoImage(image=flag_image)
             self.lab1.config(image=self.lab1.image)
-            self.lab2.config(text="Unknown IP", font=(self.font_family, self.font_size))
+            self.lab2.config(text="Unknown", font=(self.font_family, self.font_size))
             self.lab3.config(text="000.000.000.000", font=(self.font_family, self.font_size))
         else:
             if ip_info.ip_address != self.last_ip:
@@ -129,11 +140,18 @@ class Application:
                 # self.lab1.config(image=self.lab1.image)
 
     def relocate_window(self):
+        x = self.position_x
+        y = self.position_y
+        if not self.position_absolute and os.path.isfile(RUNTIME_FILE):
+            with open(RUNTIME_FILE, "r") as file:
+                items = file.read().split(" ")
+                if len(items) == 2:
+                    x = int(items[0])
+                    y = int(items[1])
+
         self.root.update_idletasks()
         width = self.root.winfo_width()
         height = self.root.winfo_height()
-        x = self.position_x
-        y = self.position_y
         self.root.geometry(f"{width}x{height}+{x}+{y}")
 
     def move_window(self, event):
