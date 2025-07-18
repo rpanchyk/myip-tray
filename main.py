@@ -96,32 +96,32 @@ class Application:
     def render_window(self, ip_info):
         if ip_info.is_unknown():
             self.last_ip = None
-            img = Image.open(PIRATE_FLAG)
+            flag_image = Image.open(PIRATE_FLAG)
 
-            self.icon.icon = img
+            self.icon.icon = flag_image
             self.icon.title = "Unknown IP"
 
-            self.lab1.image = ImageTk.PhotoImage(image=img)
+            self.lab1.image = ImageTk.PhotoImage(image=flag_image)
             self.lab1.config(image=self.lab1.image)
             self.lab2.config(text="Unknown IP", font=(self.font_family, self.font_size))
-            self.lab3.config(text="...", font=(self.font_family, self.font_size))
+            self.lab3.config(text="000.000.000.000", font=(self.font_family, self.font_size))
         else:
             if ip_info.ip_address != self.last_ip:
                 self.last_ip = ip_info.ip_address
-                img = Image.open(f"{IMAGES_DIR}\\flags\\{ip_info.country_code}.png")
+                flag_image = Image.open(f"{IMAGES_DIR}\\flags\\{ip_info.country_code}.png")
 
-                self.icon.icon = img
+                self.icon.icon = flag_image
                 self.icon.title = ip_info.ip_address
 
-                self.lab1.image = ImageTk.PhotoImage(image=img)
+                self.lab1.image = ImageTk.PhotoImage(image=flag_image)
                 self.lab1.config(image=self.lab1.image)
                 self.lab2.config(text=ip_info.country_code, font=(self.font_family, self.font_size))
                 self.lab3.config(text=ip_info.ip_address, font=(self.font_family, self.font_size))
 
-                self.root.update_idletasks()
-                width = self.lab3.winfo_reqwidth() + 5
-                height = self.root.winfo_height()
-                self.root.geometry(f"{width}x{height}")
+                # self.root.update_idletasks()
+                # width = self.lab3.winfo_reqwidth() + 5
+                # height = self.root.winfo_height()
+                # self.root.geometry(f"{width}x{height}")
 
                 # original_image = Image.open(f"{IMAGES_DIR}\\flags\\{ip_info.country_code}.png")
                 # resized_image = original_image.resize((width - 10, original_image.height))
