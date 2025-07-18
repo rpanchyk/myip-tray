@@ -1,27 +1,27 @@
-# My IP Tray
+# MyIP-Tray
 
 The project is a fork of [My-IP-Widget](https://github.com/B3H1Z/My-IP-Widget)
 originally designed by [Behnam Ahmadi](https://behnamahmadi.com/) aka "B3H1Z".
 
-This application is aimed to observe and verify your external (WAN) IP address in real time.
+It is aimed to observe and verify your external (WAN) IP address in real time.
 
-## Working mode
+## Usage
+
+### Working modes
 
 To switch between working modes click on application icon in system tray.
 
-### Visible Mode
+#### Visible Mode
 
 Normal working mode when application window is visible.
 
 ![](docs/view-visible.png)
 
-### Minimized Mode
+#### Minimized Mode
 
 Working mode when application window is minimized.
 
 ![](docs/view-minimized.png)
-
-## Usage
 
 ## Configuration
 
