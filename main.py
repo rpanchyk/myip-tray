@@ -22,6 +22,7 @@ ICONS_DIR = resource_path("assets/icons")
 IMAGES_DIR = resource_path("assets/images")
 PIRATE_FLAG = f"{IMAGES_DIR}/pirate_flag.png"
 EXPECTED_FLAG = f"{IMAGES_DIR}/expected_flag.png"
+UNEXPECTED_FLAG = f"{IMAGES_DIR}/unexpected_flag.png"
 RUNTIME_FILE = ".runtime"
 
 
@@ -44,7 +45,7 @@ class Application:
         self.font_size = int(os.getenv("FONT_SIZE", "11"))
         self.refresh_interval_seconds = int(os.getenv("REFRESH_INTERVAL_SECONDS", "60"))
         self.refresh_timeout_seconds = int(os.getenv("REFRESH_TIMEOUT_SECONDS", "10"))
-        self.expected_ip = os.getenv("EXPECTED_IP", "")
+        self.expected_ip = os.getenv("EXPECTED_IP", "").strip()
 
         # Runtime
         self.x_last = 0
@@ -127,8 +128,11 @@ class Application:
             if ip_info.ip_address != self.last_ip:
                 self.last_ip = ip_info.ip_address
                 flag_image = Image.open(f"{IMAGES_DIR}\\flags\\{ip_info.country_code}.png")
-                if len(self.expected_ip) > 0 and self.expected_ip == ip_info.ip_address:
-                    flag_image = Image.open(EXPECTED_FLAG)
+                if len(self.expected_ip) > 0:
+                    if self.expected_ip == ip_info.ip_address:
+                        flag_image = Image.open(EXPECTED_FLAG)
+                    else:
+                        flag_image = Image.open(UNEXPECTED_FLAG)
 
                 self.icon.icon = flag_image
                 self.icon.title = ip_info.ip_address
