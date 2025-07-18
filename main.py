@@ -4,7 +4,7 @@ import threading
 import random
 from tkinter import Tk, Label
 from PIL import Image, ImageTk
-from pystray import Icon, MenuItem
+from pystray import Icon, Menu, MenuItem
 from resolvers.ip_api import IpApiResolver
 from resolvers.myip import MyIpResolver
 from models.ip_info import IpInfo
@@ -72,13 +72,13 @@ class Application:
 
         self.lab1.bind("<Button-3>", self.hide_window)
 
-        self.icon = Icon("myip")
+        self.icon = Icon("myip_icon")
         self.icon.icon = Image.open(PIRATE_FLAG)
-        self.icon.run_detached()
-        self.icon.menu = (
-            MenuItem("Show", None),
+        self.icon.menu = Menu(
+            MenuItem("Show", None, default=True),
             MenuItem("Quit", self.quit_window)
         )
+        self.icon.run_detached()
 
         self.render_window(IpInfo.unknown())
         self.relocate_window()
@@ -166,8 +166,8 @@ class Application:
     def show_window(self, event):
         menu_items = []
         for item in self.icon.menu:
-            menu_items.append(MenuItem("Hide", self.hide_window) if str(item) == "Show" else item)
-        self.icon.menu = menu_items
+            menu_items.append(MenuItem("Hide", self.hide_window, default=True) if str(item) == "Show" else item)
+        self.icon.menu = Menu(*menu_items)
         self.icon.update_menu()
 
         self.root.deiconify()
@@ -175,8 +175,8 @@ class Application:
     def hide_window(self, event):
         menu_items = []
         for item in self.icon.menu:
-            menu_items.append(MenuItem("Show", self.show_window) if str(item) == "Hide" else item)
-        self.icon.menu = menu_items
+            menu_items.append(MenuItem("Show", self.show_window, default=True) if str(item) == "Hide" else item)
+        self.icon.menu = Menu(*menu_items)
         self.icon.update_menu()
 
         self.root.withdraw()
