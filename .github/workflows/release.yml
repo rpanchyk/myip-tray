@@ -1,0 +1,63 @@
+# Docs
+# https://github.com/softprops/action-gh-release
+
+name: Release
+
+on:
+  push:
+    # branches: ["main"]
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            osname: linux
+            # artifact_name: ${{ github.event.repository.name }}
+            asset_name: ${{ github.event.repository.name }}-linux.zip
+          - os: windows-latest
+            osname: windows
+            # artifact_name: ${{ github.event.repository.name }}.exe
+            asset_name: ${{ github.event.repository.name }}-windows.zip
+          - os: macos-latest
+            osname: macosx
+            # artifact_name: ${{ github.event.repository.name }}
+            asset_name: ${{ github.event.repository.name }}-darwin.zip
+    runs-on: ${{ matrix.os }}
+    #runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependencies
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Create binaries
+        #run: make build-${{ matrix.osname }}
+        run: pyinstaller --clean --noconfirm --onefile --windowed --add-data "assets;assets/" --name "myip-tray" main.py
+
+      - name: Zip files
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: dist/ .env
+          dest: dist/${{ github.event.repository.name }}-${{ matrix.osname }}.zip
+
+      - name: Release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/${{ matrix.asset_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: ${{ github.ref }}
+          overwrite: true
