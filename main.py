@@ -17,7 +17,6 @@ def resource_path(relative_path):
     return os.path.join(os.path.abspath('.'), relative_path)
 
 
-REQUEST_TIMEOUT = 5
 IMG_DIR = resource_path("assets/images")
 PIRATE_FLAG = f"{IMG_DIR}/pirate_flag.png"
 
@@ -29,6 +28,8 @@ class Application2:
         self.on_top = True
         self.position_x = 1830
         self.position_y = 890
+        self.refresh_interval_seconds = 5
+        self.refresh_timeout_seconds = 5
 
         self.x_last = 0
         self.y_last = 0
@@ -45,6 +46,13 @@ class Application2:
             self.bg_color = "white"
             self.fg_color = "black"
 
+        self.root.attributes('-topmost', self.on_top)
+        self.root.configure(bg=self.bg_color)
+
+        self.root.bind("<ButtonPress-1>", self.on_left_button_press)
+        self.root.bind("<B1-Motion>", self.move_window)
+        self.root.bind("<Button-2>", self.quit_window)
+
         self.lab1 = Label(self.root, bg=self.bg_color)
         self.lab2 = Label(self.root, bd=0, bg=self.bg_color, fg=self.fg_color, highlightthickness=0, borderwidth=0)
         self.lab3 = Label(self.root, bd=0, bg=self.bg_color, fg=self.fg_color, highlightthickness=0, borderwidth=0)
@@ -58,40 +66,24 @@ class Application2:
         self.icon = Icon("ping")
         self.icon.icon = Image.open(PIRATE_FLAG)
         self.icon.run_detached()
-
-        if self.start_minimized:
-            self.icon.menu = (
-                MenuItem('Show', self.show_window),
-                MenuItem('Quit', self.quit_window)
-            )
-        else:
-            self.icon.menu = (
-                MenuItem('Hide', self.hide_window),
-                MenuItem('Quit', self.quit_window)
-            )
+        self.icon.menu = (
+            MenuItem('Show', None),
+            MenuItem('Quit', self.quit_window)
+        )
         self.icon.update_menu()
 
-        self.root.attributes('-topmost', self.on_top)
-        # self.root.attributes("-alpha", 0.7)
-        self.root.configure(bg=self.bg_color)
-
-        self.root.bind("<ButtonPress-1>", self.on_left_button_press)
-        self.root.bind("<B1-Motion>", self.move_window)
-        self.root.bind("<Button-2>", self.quit_window)
+        self.render_window(IpInfo(None, None))
+        self.relocate_window()
 
         if self.start_minimized:
             self.hide_window(None)
+        else:
+            self.show_window(None)
 
-        self.resolvers = [IpApiResolver(REQUEST_TIMEOUT), MyIpResolver(REQUEST_TIMEOUT)]
-
-        self.lab1.image = ImageTk.PhotoImage(file=PIRATE_FLAG)
-        self.lab1.config(image=self.lab1.image)
-        self.lab2.config(text="No connection")
-        self.lab3.config(text="...")
-        self.icon.icon = Image.open(PIRATE_FLAG)
-
-        self.relocate_window()
-
+        self.resolvers = [
+            IpApiResolver(self.refresh_timeout_seconds),
+            MyIpResolver(self.refresh_timeout_seconds)
+        ]
         self.event = threading.Event()
         self.thread = threading.Thread(target=self.update_data)
         self.thread.start()
@@ -99,6 +91,32 @@ class Application2:
     def on_left_button_press(self, event):
         self.x_last = event.x_root
         self.y_last = event.y_root
+
+    def render_window(self, ip_info):
+        if ip_info.is_unknown():
+            self.last_ip = None
+            self.lab1.image = ImageTk.PhotoImage(file=PIRATE_FLAG)
+            self.lab1.config(image=self.lab1.image)
+            self.lab2.config(text="No connection")
+            self.lab3.config(text="...")
+            self.icon.icon = Image.open(PIRATE_FLAG)
+        else:
+            if ip_info.ip_address != self.last_ip:
+                self.last_ip = ip_info.ip_address
+                self.lab1.image = ImageTk.PhotoImage(image=Image.open(f"{IMG_DIR}\\flags\\{ip_info.country_code}.png"))
+                self.lab1.config(image=self.lab1.image)
+                self.lab2.config(text=ip_info.country_code)
+                self.lab3.config(text=ip_info.ip_address)
+                self.icon.icon = Image.open(f"{IMG_DIR}\\flags\\{ip_info.country_code}.png")
+                self.icon.title = ip_info.ip_address
+
+    def relocate_window(self):
+        self.root.update_idletasks()  # Ensure dimensions are updated
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = self.position_x
+        y = self.position_y
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
 
     def move_window(self, event):
         x_delta = event.x_root - self.x_last
@@ -109,7 +127,7 @@ class Application2:
         self.x_last = event.x_root
         self.y_last = event.y_root
 
-    def show_window(self):
+    def show_window(self, event):
         menu_items = []
         for item in self.icon.menu:
             menu_items.append(MenuItem('Hide', self.hide_window) if str(item) == "Show" else item)
@@ -137,42 +155,10 @@ class Application2:
 
         self.root.destroy()
 
-    def relocate_window(self):
-        self.root.update_idletasks()  # Ensure dimensions are updated
-        width = self.root.winfo_width()
-        height = self.root.winfo_height()
-        # screen_width = self.root.winfo_screenwidth()
-        # screen_height = self.root.winfo_screenheight()
-
-        # x = (screen_width - width) // 2
-        # y = (screen_height - height) // 2
-        x = self.position_x
-        y = self.position_y
-
-        self.root.geometry(f"{width}x{height}+{x}+{y}")
-
     def update_data(self):
         while not self.event.is_set():
-            ip_info = self.get_ip_info()
-            if not ip_info.is_unknown():
-                if ip_info.ip_address != self.last_ip:
-                    self.last_ip = ip_info.ip_address
-                    self.lab1.image = ImageTk.PhotoImage(
-                        image=Image.open(f"{IMG_DIR}\\flags\\{ip_info.country_code}.png"))
-                    self.lab1.config(image=self.lab1.image)
-                    self.lab2.config(text=ip_info.country_code)
-                    self.lab3.config(text=ip_info.ip_address)
-                    self.icon.icon = Image.open(f"{IMG_DIR}\\flags\\{ip_info.country_code}.png")
-                    self.icon.title = ip_info.ip_address
-            else:
-                self.last_ip = None
-                self.lab1.image = ImageTk.PhotoImage(file=PIRATE_FLAG)
-                self.lab1.config(image=self.lab1.image)
-                self.lab2.config(text="No connection")
-                self.lab3.config(text="...")
-                self.icon.icon = Image.open(PIRATE_FLAG)
-
-            self.event.wait(5)
+            self.render_window(self.get_ip_info())
+            self.event.wait(self.refresh_interval_seconds)
 
     def get_ip_info(self):
         resolvers_idx = [i for i in range(len(self.resolvers))]
