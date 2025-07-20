@@ -58,3 +58,4 @@ jobs:
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
           overwrite: true
+          draft: true
