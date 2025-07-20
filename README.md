@@ -3,7 +3,7 @@
 The project is a fork of [My-IP-Widget](https://github.com/B3H1Z/My-IP-Widget)
 originally designed by [Behnam Ahmadi](https://behnamahmadi.com/) aka "B3H1Z".
 
-It is aimed to observe and verify your external (WAN) IP address in real time.
+It is aimed to observe and verify your public (external, WAN) IP address in realtime.
 
 ## Usage
 
@@ -58,9 +58,16 @@ EXPECTED_IP=172.20.10.50
 
 ## Development
 
+### Dependencies
+
+Execute the command to add all required dependencies:
+
+```shell
+pip install -r requirements.txt
+```
 ### Run
 
-Execute next command to run application:
+Execute the command to run application:
 
 ```shell
 python ./main.py
@@ -68,11 +75,10 @@ python ./main.py
 
 ### Build
 
-Execute next command to create executable:
+Execute the command to create executable:
 
 ```shell
-pip install pyinstaller
-pyinstaller --clean --noconfirm --onefile --windowed --add-data "assets;assets/" --name "myip-tray" main.py
+pyinstaller --clean --noconfirm --onefile --windowed --add-data "./assets:assets" --name "myip-tray" main.py
 ```
 
 # Disclaimer
