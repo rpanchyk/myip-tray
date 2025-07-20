@@ -37,9 +37,9 @@ class Application:
         # Colors - https://www.plus2net.com/python/tkinter-colors.php
 
         # Settings
-        self.start_minimized = strtobool(os.getenv("START_MINIMIZED", "false"))
         self.run_on_boot = strtobool(os.getenv("RUN_ON_BOOT", "false"))
-        self.on_top = strtobool(os.getenv("ON_TOP", "true"))
+        self.start_minimized = strtobool(os.getenv("START_MINIMIZED", "false"))
+        self.show_on_top = strtobool(os.getenv("SHOW_ON_TOP", "false"))
         self.position_absolute = strtobool(os.getenv("POSITION_ABSOLUTE", "false"))
         self.position_x = int(os.getenv("POSITION_X", "0"))  # 1800
         self.position_y = int(os.getenv("POSITION_Y", "0"))  # 890
@@ -64,7 +64,7 @@ class Application:
 
         self.root = Tk()
         self.root.overrideredirect(True)
-        self.root.attributes("-topmost", self.on_top)
+        self.root.attributes("-topmost", self.show_on_top)
         self.root.configure(bg=self.background_color)
 
         self.root.bind("<ButtonPress-1>", self.on_left_button_press)
