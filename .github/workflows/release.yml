@@ -57,5 +57,6 @@ jobs:
           file: dist/${{ matrix.asset_name }}
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
+          release_id: ${{ github.ref }}
           overwrite: true
           draft: true
