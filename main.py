@@ -21,7 +21,6 @@ def resource_path(relative_path):
     return os.path.join(os.path.abspath("."), relative_path)
 
 
-ICONS_DIR = resource_path("assets/icons")
 IMAGES_DIR = resource_path("assets/images")
 PIRATE_FLAG = f"{IMAGES_DIR}/pirate_flag.png"
 EXPECTED_FLAG = f"{IMAGES_DIR}/expected_flag.png"
@@ -65,7 +64,6 @@ class Application:
 
         self.root = Tk()
         self.root.overrideredirect(True)
-        # self.root.iconbitmap(f"{ICONS_DIR}\\icon.ico")
         self.root.attributes("-topmost", self.on_top)
         self.root.configure(bg=self.background_color)
 
@@ -80,9 +78,6 @@ class Application:
         self.lab3 = Label(self.root, bd=0, borderwidth=0,
                           bg=self.background_color, fg=self.foreground_color)
 
-        # self.lab1.grid(row=1, column=1)
-        # self.lab2.grid(row=2, column=1)
-        # self.lab3.grid(row=3, column=1)
         self.lab1.pack(expand=True)
         self.lab2.pack(expand=True)
         self.lab3.pack(expand=True)
@@ -194,16 +189,6 @@ Exec=""" + filepath)
                 self.lab1.config(image=self.lab1.image)
                 self.lab2.config(text=ip_info.country_code, font=(self.font_family, self.font_size))
                 self.lab3.config(text=" " + ip_info.ip_address + " ", font=(self.font_family, self.font_size))
-
-                # self.root.update_idletasks()
-                # width = self.lab3.winfo_reqwidth() + 5
-                # height = self.root.winfo_height()
-                # self.root.geometry(f"{width}x{height}")
-
-                # original_image = Image.open(f"{IMAGES_DIR}\\flags\\{ip_info.country_code}.png")
-                # resized_image = original_image.resize((width - 10, original_image.height))
-                # self.lab1.image = ImageTk.PhotoImage(resized_image)
-                # self.lab1.config(image=self.lab1.image)
 
     def relocate_window(self):
         x = self.position_x
