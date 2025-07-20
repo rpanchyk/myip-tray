@@ -28,8 +28,8 @@ Working mode when application window is minimized.
 Change `.env` configuration file according to your needs:
 
 ```dotenv
-START_MINIMIZED=false
 RUN_ON_BOOT=false
+START_MINIMIZED=false
 SHOW_ON_TOP=false
 POSITION_ABSOLUTE=false
 POSITION_X=0
