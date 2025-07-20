@@ -1,15 +1,18 @@
 import os
+import random
 import sys
 import threading
-import random
-from dotenv import load_dotenv
-from distutils.util import strtobool
+import winreg
 from tkinter import Tk, Label
+
 from PIL import Image, ImageTk
+from distutils.util import strtobool
+from dotenv import load_dotenv
 from pystray import Icon, Menu, MenuItem
+
+from models.ip_info import IpInfo
 from resolvers.ip_api import IpApiResolver
 from resolvers.myip import MyIpResolver
-from models.ip_info import IpInfo
 
 
 def resource_path(relative_path):
@@ -23,7 +26,8 @@ IMAGES_DIR = resource_path("assets/images")
 PIRATE_FLAG = f"{IMAGES_DIR}/pirate_flag.png"
 EXPECTED_FLAG = f"{IMAGES_DIR}/expected_flag.png"
 UNEXPECTED_FLAG = f"{IMAGES_DIR}/unexpected_flag.png"
-RUNTIME_FILE = ".runtime"
+APP_NAME = "myip-tray"
+RUNTIME_FILE = ".run"
 
 
 class Application:
@@ -35,6 +39,7 @@ class Application:
 
         # Settings
         self.start_minimized = strtobool(os.getenv("START_MINIMIZED", "false"))
+        self.run_on_boot = strtobool(os.getenv("RUN_ON_BOOT", "false"))
         self.on_top = strtobool(os.getenv("ON_TOP", "true"))
         self.position_absolute = strtobool(os.getenv("POSITION_ABSOLUTE", "false"))
         self.position_x = int(os.getenv("POSITION_X", "0"))  # 1800
@@ -56,9 +61,11 @@ class Application:
             MyIpResolver(self.refresh_timeout_seconds)
         ]
 
+        self.manage_autostart()
+
         self.root = Tk()
         self.root.overrideredirect(True)
-        self.root.iconbitmap(f"{ICONS_DIR}\\icon.ico")
+        # self.root.iconbitmap(f"{ICONS_DIR}\\icon.ico")
         self.root.attributes("-topmost", self.on_top)
         self.root.configure(bg=self.background_color)
 
@@ -82,7 +89,7 @@ class Application:
 
         self.lab1.bind("<Button-3>", self.hide_window)
 
-        self.icon = Icon("myip_icon")
+        self.icon = Icon(APP_NAME)
         self.icon.icon = Image.open(PIRATE_FLAG)
         self.icon.menu = Menu(
             MenuItem("Hide", self.hide_window, default=True),
@@ -99,6 +106,50 @@ class Application:
         self.event = threading.Event()
         self.thread = threading.Thread(target=self.update_data)
         self.thread.start()
+
+    def manage_autostart(self):
+        if sys.platform == "win32":
+            self.manage_windows_startup()
+        elif sys.platform == "linux":
+            self.manage_linux_startup()
+
+    def manage_windows_startup(self):
+        file = sys.executable if getattr(sys, 'frozen', False) else __file__
+        filepath = os.path.realpath(file)
+        filepath = filepath if getattr(sys, 'frozen', False) else "python " + filepath
+        key_name = winreg.HKEY_CURRENT_USER
+        key_value = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        with winreg.OpenKey(key_name, key_value, 0, winreg.KEY_ALL_ACCESS) as key:
+            try:
+                if self.run_on_boot:
+                    winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, filepath)
+                else:
+                    winreg.DeleteValue(key, APP_NAME)
+            except WindowsError as e:
+                print("Registry error:", e)
+            finally:
+                winreg.CloseKey(key)
+
+    def manage_linux_startup(self):
+        file = sys.executable if getattr(sys, 'frozen', False) else __file__
+        filepath = os.path.realpath(file)
+        filepath = filepath if getattr(sys, 'frozen', False) else "python " + filepath
+        directory = os.path.join(os.path.expanduser("~"), ".config/autostart")
+        config_path = os.path.join(directory, APP_NAME + ".desktop")
+        if self.run_on_boot:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            if not os.path.isfile(config_path):
+                with open(config_path, "w") as f:
+                    f.write("""[Desktop Entry]
+Type=Application
+StartupNotify=false
+Terminal=false
+Name=""" + APP_NAME + """
+Exec=""" + filepath)
+        else:
+            if os.path.isfile(config_path):
+                os.remove(config_path)
 
     def on_left_button_press(self, event):
         self.x_last = event.x_root
@@ -228,7 +279,7 @@ class Application:
             self.root.mainloop()
         except KeyboardInterrupt:
             print("Interrupted by user")
-        os._exit(1)
+        sys.exit()
 
 
 if __name__ == "__main__":

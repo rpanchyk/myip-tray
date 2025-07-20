@@ -29,6 +29,7 @@ Change `.env` configuration file according to your needs:
 
 ```dotenv
 START_MINIMIZED=false
+RUN_ON_BOOT=false
 ON_TOP=true
 POSITION_ABSOLUTE=false
 POSITION_X=0
@@ -63,14 +64,14 @@ EXPECTED_IP=172.20.10.50
 Execute the command to add all required dependencies:
 
 ```shell
-pip install -r requirements.txt
+pip install -r requirements.txt pyinstaller
 ```
 ### Run
 
 Execute the command to run application:
 
 ```shell
-python ./main.py
+python main.py
 ```
 
 ### Build
@@ -78,7 +79,7 @@ python ./main.py
 Execute the command to create executable:
 
 ```shell
-pyinstaller --clean --noconfirm --onefile --windowed --add-data "./assets:assets" --name "myip-tray" main.py
+pyinstaller --clean --noconfirm --onefile --windowed --icon "./assets/icons/icon.ico" --add-data "./assets:assets" --name "myip-tray" main.py
 ```
 
 # Disclaimer

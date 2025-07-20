@@ -42,7 +42,7 @@ jobs:
         run: pip install -r requirements.txt pyinstaller
 
       - name: Create binary
-        run: pyinstaller --clean --noconfirm --onefile --windowed --add-data "./assets:assets" --name "myip-tray" main.py
+        run: pyinstaller --clean --noconfirm --onefile --windowed --icon "./assets/icons/icon.ico" --add-data "./assets:assets" --name "myip-tray" main.py
 
       - name: Zip assets
         uses: vimtor/action-zip@v1.2
