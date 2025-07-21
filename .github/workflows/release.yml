@@ -18,15 +18,15 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            osname: linux
-            asset_name: ${{ github.event.repository.name }}-linux.zip
+#          - os: ubuntu-latest
+#            osname: linux
+#            asset_name: ${{ github.event.repository.name }}-linux.zip
+#          - os: macos-latest
+#            osname: macosx
+#            asset_name: ${{ github.event.repository.name }}-macosx.zip
           - os: windows-latest
             osname: windows
             asset_name: ${{ github.event.repository.name }}-windows.zip
-          - os: macos-latest
-            osname: macosx
-            asset_name: ${{ github.event.repository.name }}-macosx.zip
 
     runs-on: ${{ matrix.os }}
     steps:

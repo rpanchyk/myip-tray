@@ -103,12 +103,6 @@ class Application:
         self.thread.start()
 
     def manage_autostart(self):
-        if sys.platform == "win32":
-            self.manage_windows_startup()
-        elif sys.platform == "linux":
-            self.manage_linux_startup()
-
-    def manage_windows_startup(self):
         file = sys.executable if getattr(sys, 'frozen', False) else __file__
         filepath = os.path.realpath(file)
         filepath = filepath if getattr(sys, 'frozen', False) else "python " + filepath
@@ -124,27 +118,6 @@ class Application:
                 print("Registry error:", e)
             finally:
                 winreg.CloseKey(key)
-
-    def manage_linux_startup(self):
-        file = sys.executable if getattr(sys, 'frozen', False) else __file__
-        filepath = os.path.realpath(file)
-        filepath = filepath if getattr(sys, 'frozen', False) else "python " + filepath
-        directory = os.path.join(os.path.expanduser("~"), ".config/autostart")
-        config_path = os.path.join(directory, APP_NAME + ".desktop")
-        if self.run_on_boot:
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            if not os.path.isfile(config_path):
-                with open(config_path, "w") as f:
-                    f.write("""[Desktop Entry]
-Type=Application
-StartupNotify=false
-Terminal=false
-Name=""" + APP_NAME + """
-Exec=""" + filepath)
-        else:
-            if os.path.isfile(config_path):
-                os.remove(config_path)
 
     def on_left_button_press(self, event):
         self.x_last = event.x_root
