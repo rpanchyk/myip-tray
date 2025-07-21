@@ -39,16 +39,16 @@ class Application:
         # Settings
         self.run_on_boot = strtobool(os.getenv("RUN_ON_BOOT", "false"))
         self.start_minimized = strtobool(os.getenv("START_MINIMIZED", "false"))
-        self.show_on_top = strtobool(os.getenv("SHOW_ON_TOP", "false"))
+        self.show_on_top = strtobool(os.getenv("SHOW_ON_TOP", "true"))
         self.position_absolute = strtobool(os.getenv("POSITION_ABSOLUTE", "false"))
-        self.position_x = int(os.getenv("POSITION_X", "0"))  # 1800
-        self.position_y = int(os.getenv("POSITION_Y", "0"))  # 890
-        self.background_color = os.getenv("BACKGROUND_COLOR", "aliceblue")
-        self.foreground_color = os.getenv("FOREGROUND_COLOR", "black")
-        self.font_family = os.getenv("FONT_FAMILY", "Arial")
-        self.font_size = int(os.getenv("FONT_SIZE", "11"))
-        self.refresh_interval_seconds = int(os.getenv("REFRESH_INTERVAL_SECONDS", "60"))
-        self.refresh_timeout_seconds = int(os.getenv("REFRESH_TIMEOUT_SECONDS", "10"))
+        self.position_x = int(os.getenv("POSITION_X", "0").strip())  # 1800
+        self.position_y = int(os.getenv("POSITION_Y", "0").strip())  # 890
+        self.background_color = os.getenv("BACKGROUND_COLOR", "aliceblue").strip()
+        self.foreground_color = os.getenv("FOREGROUND_COLOR", "black").strip()
+        self.font_family = os.getenv("FONT_FAMILY", "Arial").strip()
+        self.font_size = int(os.getenv("FONT_SIZE", "11").strip())
+        self.refresh_interval_seconds = int(os.getenv("REFRESH_INTERVAL_SECONDS", "60").strip())
+        self.refresh_timeout_seconds = int(os.getenv("REFRESH_TIMEOUT_SECONDS", "10").strip())
         self.expected_ip = os.getenv("EXPECTED_IP", "").strip()
 
         # Runtime
@@ -85,12 +85,8 @@ class Application:
         self.lab1.bind("<Button-3>", self.hide_window)
 
         self.icon = Icon(APP_NAME)
-        self.icon.icon = Image.open(PIRATE_FLAG)
-        self.icon.menu = Menu(
-            MenuItem("Hide", self.hide_window, default=True),
-            MenuItem("Quit", self.quit_window)
-        )
-        self.icon.run_detached()
+        self.setup_tray_thread = threading.Thread(target=self.setup_tray, daemon=True)
+        self.setup_tray_thread.start()
 
         self.render_window(IpInfo.unknown())
         self.relocate_window()
@@ -99,8 +95,8 @@ class Application:
             self.hide_window(None)
 
         self.event = threading.Event()
-        self.thread = threading.Thread(target=self.update_data)
-        self.thread.start()
+        self.update_data_thread = threading.Thread(target=self.update_data, daemon=True)
+        self.update_data_thread.start()
 
     def manage_autostart(self):
         file = sys.executable if getattr(sys, 'frozen', False) else __file__
@@ -114,10 +110,20 @@ class Application:
                     winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, filepath)
                 else:
                     winreg.DeleteValue(key, APP_NAME)
+            except FileNotFoundError:
+                pass  # skip if it doesn't exist
             except WindowsError as e:
                 print("Registry error:", e)
             finally:
                 winreg.CloseKey(key)
+
+    def setup_tray(self):
+        self.icon.icon = Image.open(PIRATE_FLAG)
+        self.icon.menu = Menu(
+            MenuItem("Hide", self.hide_window, default=True),
+            MenuItem("Quit", self.quit_window)
+        )
+        self.icon.run()
 
     def on_left_button_press(self, event):
         self.x_last = event.x_root
@@ -206,12 +212,14 @@ class Application:
         self.root.withdraw()
 
     def quit_window(self, event):
+        print("Stopping updating data ... ", end="")
         self.event.set()
-        self.thread.join()
+        self.update_data_thread.join(timeout=1)
+        print("Done")
 
-        self.icon.icon = None
-        self.icon.title = None
+        print("Stopping tray icon ... ", end="")
         self.icon.stop()
+        print("Done")
 
         self.root.destroy()
 

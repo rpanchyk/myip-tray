@@ -30,7 +30,7 @@ Change `.env` configuration file according to your needs:
 ```dotenv
 RUN_ON_BOOT=false
 START_MINIMIZED=false
-SHOW_ON_TOP=false
+SHOW_ON_TOP=true
 POSITION_ABSOLUTE=false
 POSITION_X=0
 POSITION_Y=0
