@@ -32,10 +32,8 @@ RUNTIME_FILE = ".run"
 
 class Application:
     def __init__(self):
-        filepath = os.path.realpath(sys.executable if getattr(sys, 'frozen', False) else __file__)
-        dirpath = os.path.dirname(filepath)
-        dotenv_path = os.path.join(dirpath, DOTENV_FILE)
-        load_dotenv(dotenv_path=dotenv_path, verbose=True)
+        dotenv_path = os.path.join(self.get_dirpath(), DOTENV_FILE)
+        load_dotenv(dotenv_path=dotenv_path)
 
         # Docs
         # Colors - https://www.plus2net.com/python/tkinter-colors.php
@@ -102,9 +100,15 @@ class Application:
         self.update_data_thread = threading.Thread(target=self.update_data, daemon=True)
         self.update_data_thread.start()
 
+    @staticmethod
+    def get_filepath():
+        return os.path.realpath(sys.executable if getattr(sys, 'frozen', False) else __file__)
+
+    def get_dirpath(self):
+        return os.path.dirname(self.get_filepath())
+
     def manage_autostart(self):
-        file = sys.executable if getattr(sys, 'frozen', False) else __file__
-        filepath = os.path.realpath(file)
+        filepath = self.get_filepath()
         filepath = filepath if getattr(sys, 'frozen', False) else "python " + filepath
         key_name = winreg.HKEY_CURRENT_USER
         key_value = r"Software\Microsoft\Windows\CurrentVersion\Run"
@@ -138,7 +142,9 @@ class Application:
         y_delta = event.y_root - self.y_last
         x = self.root.winfo_x() + x_delta
         y = self.root.winfo_y() + y_delta
-        with open(RUNTIME_FILE, "w") as file:
+
+        filepath = os.path.join(self.get_dirpath(), RUNTIME_FILE)
+        with open(filepath, "w") as file:
             file.write(str(x) + " " + str(y))
 
     def render_window(self, ip_info):
@@ -176,8 +182,10 @@ class Application:
     def relocate_window(self):
         x = self.position_x
         y = self.position_y
-        if not self.position_absolute and os.path.isfile(RUNTIME_FILE):
-            with open(RUNTIME_FILE, "r") as file:
+
+        filepath = os.path.join(self.get_dirpath(), RUNTIME_FILE)
+        if not self.position_absolute and os.path.isfile(filepath):
+            with open(filepath, "r") as file:
                 items = file.read().split(" ")
                 if len(items) == 2:
                     x = int(items[0])
