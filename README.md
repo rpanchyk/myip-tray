@@ -51,11 +51,11 @@ EXPECTED_IP=
 
 Options:
 
-- `RUN_ON_BOOT` - start application on system boot
-- `START_MINIMIZED` - hide application window on start up
-- `SHOW_ON_TOP` - show application window on top
+- `RUN_ON_BOOT` - start application on system boot.
+- `START_MINIMIZED` - hide application window on start up.
+- `SHOW_ON_TOP` - show application window on top.
 - `POSITION_ABSOLUTE` - where to place application window:
-    - false to use previous position
+    - false to use previous position.
     - true for absolute position on screen relied on `POSITION_X` and `POSITION_Y` options.
 - `BACKGROUND_COLOR` and `FOREGROUND_COLOR` - color of window and text respectively (
   See [available colors](https://www.plus2net.com/python/tkinter-colors.php)).
