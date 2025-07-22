@@ -26,12 +26,16 @@ PIRATE_FLAG = f"{IMAGES_DIR}/pirate_flag.png"
 EXPECTED_FLAG = f"{IMAGES_DIR}/expected_flag.png"
 UNEXPECTED_FLAG = f"{IMAGES_DIR}/unexpected_flag.png"
 APP_NAME = "myip-tray"
+DOTENV_FILE = ".env"
 RUNTIME_FILE = ".run"
 
 
 class Application:
     def __init__(self):
-        load_dotenv()
+        filepath = os.path.realpath(sys.executable if getattr(sys, 'frozen', False) else __file__)
+        dirpath = os.path.dirname(filepath)
+        dotenv_path = os.path.join(dirpath, DOTENV_FILE)
+        load_dotenv(dotenv_path=dotenv_path, verbose=True)
 
         # Docs
         # Colors - https://www.plus2net.com/python/tkinter-colors.php
