@@ -35,9 +35,6 @@ class Application:
         dotenv_path = os.path.join(self.get_dirpath(), DOTENV_FILE)
         load_dotenv(dotenv_path=dotenv_path)
 
-        # Docs
-        # Colors - https://www.plus2net.com/python/tkinter-colors.php
-
         # Settings
         self.run_on_boot = strtobool(os.getenv("RUN_ON_BOOT", "false"))
         self.start_minimized = strtobool(os.getenv("START_MINIMIZED", "false"))
