@@ -57,8 +57,8 @@ Options:
 - `POSITION_ABSOLUTE` - where to place application window:
     - false to use previous position.
     - true for absolute position on screen relied on `POSITION_X` and `POSITION_Y` options.
-- `BACKGROUND_COLOR` and `FOREGROUND_COLOR` - color of window and text respectively (
-  See [available colors](https://www.plus2net.com/python/tkinter-colors.php)).
+- `BACKGROUND_COLOR` and `FOREGROUND_COLOR` - color of window and text respectively 
+  ([available colors](https://www.plus2net.com/python/tkinter-colors.php)).
 - `FONT_FAMILY` and `FONT_SIZE` - font name and size of text.
 - `REFRESH_INTERVAL_SECONDS` - period in seconds of IP address verification.
 - `REFRESH_TIMEOUT_SECONDS` - timeout in seconds for outgoing request for obtaining IP address.
