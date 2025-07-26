@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import sys
@@ -16,9 +17,10 @@ from resolvers.myip import MyIpResolver
 
 
 def resource_path(relative_path):
+    result = os.path.join(os.path.abspath("."), relative_path)
     if hasattr(sys, "_MEIPASS"):  # If running in a PyInstaller bundle
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+        result = os.path.join(sys._MEIPASS, relative_path)
+    return result.replace("\\", "/")
 
 
 IMAGES_DIR = resource_path("assets/images")
@@ -27,6 +29,7 @@ EXPECTED_FLAG = f"{IMAGES_DIR}/expected_flag.png"
 UNEXPECTED_FLAG = f"{IMAGES_DIR}/unexpected_flag.png"
 APP_NAME = "myip-tray"
 DOTENV_FILE = ".env"
+LOG_FILE = ".log"
 RUNTIME_FILE = ".run"
 
 
@@ -34,6 +37,11 @@ class Application:
     def __init__(self):
         dotenv_path = os.path.join(self.get_dirpath(), DOTENV_FILE)
         load_dotenv(dotenv_path=dotenv_path)
+
+        log_path = os.path.join(self.get_dirpath(), LOG_FILE)
+        logging.basicConfig(level=logging.INFO,
+                            format="%(asctime)s %(levelname)s %(message)s",
+                            handlers=[logging.FileHandler(log_path), logging.StreamHandler()])
 
         # Settings
         self.run_on_boot = strtobool(os.getenv("RUN_ON_BOOT", "false"))
@@ -87,13 +95,13 @@ class Application:
         self.setup_tray_thread = threading.Thread(target=self.setup_tray, daemon=True)
         self.setup_tray_thread.start()
 
-        self.render_window(IpInfo.unknown())
+        self.render_window(IpInfo.unknown(Exception("Not defined yet on start")))
         self.relocate_window()
 
         if self.start_minimized:
             self.hide_window(None)
 
-        self.event = threading.Event()
+        self.update_data_event = threading.Event()
         self.update_data_thread = threading.Thread(target=self.update_data, daemon=True)
         self.update_data_thread.start()
 
@@ -118,7 +126,7 @@ class Application:
             except FileNotFoundError:
                 pass  # skip if it doesn't exist
             except WindowsError as e:
-                print("Registry error:", e)
+                logging.error("Registry error:", e)
             finally:
                 winreg.CloseKey(key)
 
@@ -158,23 +166,20 @@ class Application:
             self.lab1.config(image=self.lab1.image)
             self.lab2.config(text="Unknown", font=(self.font_family, self.font_size))
             self.lab3.config(text="000.000.000.000", font=(self.font_family, self.font_size))
-        else:
-            if ip_info.ip_address != self.last_ip:
-                self.last_ip = ip_info.ip_address
-                flag_image = Image.open(f"{IMAGES_DIR}\\flags\\{ip_info.country_code}.png")
-                if len(self.expected_ip) > 0:
-                    if self.expected_ip == ip_info.ip_address:
-                        flag_image = Image.open(EXPECTED_FLAG)
-                    else:
-                        flag_image = Image.open(UNEXPECTED_FLAG)
+        elif ip_info.ip_address != self.last_ip:
+            self.last_ip = ip_info.ip_address
+            flag_path = f"{IMAGES_DIR}/flags/{ip_info.country_code}.png"
+            if len(self.expected_ip) > 0:
+                flag_path = EXPECTED_FLAG if self.expected_ip == ip_info.ip_address else UNEXPECTED_FLAG
+            flag_image = Image.open(flag_path)
 
-                self.icon.icon = flag_image
-                self.icon.title = ip_info.ip_address
+            self.icon.icon = flag_image
+            self.icon.title = ip_info.ip_address
 
-                self.lab1.image = ImageTk.PhotoImage(image=flag_image)
-                self.lab1.config(image=self.lab1.image)
-                self.lab2.config(text=ip_info.country_code, font=(self.font_family, self.font_size))
-                self.lab3.config(text=" " + ip_info.ip_address + " ", font=(self.font_family, self.font_size))
+            self.lab1.image = ImageTk.PhotoImage(image=flag_image)
+            self.lab1.config(image=self.lab1.image)
+            self.lab2.config(text=ip_info.country_code, font=(self.font_family, self.font_size))
+            self.lab3.config(text=" " + ip_info.ip_address + " ", font=(self.font_family, self.font_size))
 
     def relocate_window(self):
         x = self.position_x
@@ -221,39 +226,46 @@ class Application:
         self.root.withdraw()
 
     def quit_window(self, event):
-        print("Stopping updating data ... ", end="")
-        self.event.set()
+        logging.info("Stopping updating data")
+        self.update_data_event.set()
         self.update_data_thread.join(timeout=1)
-        print("Done")
 
-        print("Stopping tray icon ... ", end="")
+        logging.info("Stopping tray icon")
         self.icon.stop()
-        print("Done")
 
+        logging.info("Closing window")
         self.root.destroy()
 
     def update_data(self):
-        while not self.event.is_set():
+        while not self.update_data_event.is_set():
             self.render_window(self.get_ip_info())
-            self.event.wait(self.refresh_interval_seconds)
+            self.update_data_event.wait(self.refresh_interval_seconds)
 
     def get_ip_info(self):
+        ip_info = IpInfo.unknown(Exception("Not defined yet"))
         resolvers_idx = [i for i in range(len(self.resolvers))]
         while len(resolvers_idx) > 0:
             idx = random.randint(0, len(resolvers_idx) - 1)
             resolver = self.resolvers[idx]
             ip_info = resolver.get()
             if ip_info.is_unknown():
-                resolvers_idx.remove(idx)
+                logging.error(f"IP info is not resolved with {resolver.__class__.__name__}: {ip_info}")
+                del resolvers_idx[idx]
             else:
-                return ip_info
-        return IpInfo.unknown()
+                logging.info(f"IP info resolved with {resolver.__class__.__name__}: {ip_info}")
+                break
+        return ip_info
 
     def run(self):
         try:
+            logging.info("---")
+            logging.info("Application started")
             self.root.mainloop()
         except KeyboardInterrupt:
-            print("Interrupted by user")
+            logging.error("Interrupted by user")
+        finally:
+            logging.info("Application finished")
+            logging.info("---")
         sys.exit()
 
 
